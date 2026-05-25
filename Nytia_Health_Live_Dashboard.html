@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nytia Health — Complication Risk Prediction</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0B0F1A;--bg2:#111827;--bg3:#1A2035;--bg4:#232B42;
+  --text:#E8ECF4;--text2:#9AA3B8;--text3:#5E6B85;
+  --accent:#00D4AA;--accent2:#00B894;
+  --warn:#F59E0B;--danger:#EF4444;--info:#3B82F6;
+  --low:#10B981;--moderate:#F59E0B;--high:#EF4444;
+  --card:rgba(17,24,39,0.7);--border:rgba(255,255,255,0.06);
+  --radius:12px;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:linear-gradient(rgba(0,212,170,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(11,15,26,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),#0EA5E9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700}
+.nav-tabs{display:flex;gap:0}
+.nav-tab{padding:20px;font-size:0.875rem;color:var(--text2);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-weight:500;transition:all 0.2s}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.container{max-width:1400px;margin:0 auto;padding:2rem;position:relative;z-index:1}
+.page{display:none;animation:fadeUp 0.4s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;backdrop-filter:blur(10px)}
+.card-header{font-size:0.75rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:0.75rem;font-weight:500}
+.card-value{font-size:2.5rem;font-weight:700;letter-spacing:-1px}
+.card-sub{font-size:0.85rem;color:var(--text2);margin-top:0.25rem}
+
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:1rem}
+@media(max-width:900px){.grid-4,.grid-3,.grid-2,.grid-2-1{grid-template-columns:1fr}}
+
+.mt-1{margin-top:1rem}.mt-2{margin-top:2rem}
+
+.section-title{font-size:1.5rem;font-weight:700;letter-spacing:-0.5px;margin-bottom:0.25rem}
+.section-desc{color:var(--text2);font-size:0.9rem;margin-bottom:1.5rem}
+
+.form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem}
+@media(max-width:900px){.form-grid{grid-template-columns:repeat(2,1fr)}}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:500}
+.form-select{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235E6B85' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.form-select:focus{outline:none;border-color:var(--accent)}
+
+.btn{padding:12px 28px;border-radius:8px;font-family:inherit;font-size:0.9rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#0EA5E9);color:#000}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,212,170,0.3)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+
+.result-panel{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.result-header{padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.result-header.low{background:rgba(16,185,129,0.1);border-bottom:1px solid rgba(16,185,129,0.2)}
+.result-header.moderate{background:rgba(245,158,11,0.1);border-bottom:1px solid rgba(245,158,11,0.2)}
+.result-header.high{background:rgba(239,68,68,0.1);border-bottom:1px solid rgba(239,68,68,0.2)}
+.result-risk{font-size:1.5rem;font-weight:700}
+.result-score{font-family:'Courier New',monospace;font-size:2rem;font-weight:700}
+.result-body{padding:1.5rem;background:var(--bg2)}
+.result-section{margin-bottom:1.25rem}
+.result-section:last-child{margin-bottom:0}
+.result-section-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:0.5rem}
+
+.driver-tag{display:inline-block;padding:6px 14px;border-radius:20px;font-size:0.8rem;font-weight:500;margin:3px 4px 3px 0}
+.driver-tag.declining{background:rgba(239,68,68,0.15);color:#FCA5A5;border:1px solid rgba(239,68,68,0.2)}
+.driver-tag.stable{background:rgba(16,185,129,0.15);color:#6EE7B7;border:1px solid rgba(16,185,129,0.2)}
+
+.rec-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.9rem;color:var(--text2)}
+.rec-item:last-child{border-bottom:none}
+
+.stat-pills{display:flex;flex-wrap:wrap;gap:8px}
+.stat-pill{padding:6px 14px;background:var(--bg3);border-radius:20px;font-size:0.8rem;display:flex;align-items:center;gap:6px}
+.stat-pill .dot{width:8px;height:8px;border-radius:50%}
+
+.json-block{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;font-family:'Courier New',monospace;font-size:0.8rem;overflow-x:auto;line-height:1.6;white-space:pre}
+.json-key{color:var(--accent)}
+.json-str{color:#F59E0B}
+.json-num{color:#818CF8}
+
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.bar-label{width:100px;font-size:0.8rem;color:var(--text2);text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:28px;background:var(--bg3);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:0.75rem;font-weight:600;color:#000;min-width:30px}
+.bar-value{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:0.75rem;color:var(--text2);font-family:monospace}
+
+.hero{text-align:center;padding:3rem 0 2rem}
+.hero-title{font-size:2.5rem;font-weight:700;letter-spacing:-1.5px;background:linear-gradient(135deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{color:var(--text2);font-size:1.1rem;margin-top:0.5rem;max-width:700px;margin-left:auto;margin-right:auto}
+
+.donut-container{display:flex;align-items:center;gap:2rem}
+.donut{width:180px;height:180px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center}
+.donut-center{font-size:0.8rem;color:var(--text2);text-align:center}
+.donut-center strong{display:block;font-size:1.5rem;color:var(--text);letter-spacing:-1px}
+.legend-item{display:flex;align-items:center;gap:10px;font-size:0.85rem;margin-bottom:10px}
+.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+.loading{display:inline-block;width:20px;height:20px;border:2px solid var(--text3);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.api-status{display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text3)}
+.api-dot{width:8px;height:8px;border-radius:50%}
+.api-dot.online{background:var(--low)}
+.api-dot.offline{background:var(--danger)}
+
+.arch-layer{width:100%;padding:1rem 1.5rem;border:1px solid var(--border);display:flex;align-items:center;gap:1rem}
+.arch-layer:first-child{border-radius:var(--radius) var(--radius) 0 0}
+.arch-layer:last-child{border-radius:0 0 var(--radius) var(--radius)}
+.arch-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0}
+.arch-title{font-weight:600;font-size:0.9rem}
+.arch-desc{font-size:0.8rem;color:var(--text2);margin-top:2px}
+.arch-tech{font-family:monospace;font-size:0.7rem;color:var(--accent);margin-top:4px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">
+      <div class="logo-icon">N</div>
+      Nytia Health
+      <div class="api-status" id="api-status">
+        <div class="api-dot" id="api-dot"></div>
+        <span id="api-status-text">Checking API...</span>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('overview',this)">Overview</button>
+      <button class="nav-tab" onclick="showPage('predict',this)">Predict Risk</button>
+      <button class="nav-tab" onclick="showPage('eda',this)">EDA Insights</button>
+      <button class="nav-tab" onclick="showPage('architecture',this)">Architecture</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- ══ OVERVIEW ══ -->
+<div id="page-overview" class="page active">
+  <div class="hero">
+    <div class="hero-title">Complication Risk Prediction</div>
+    <div class="hero-sub">Predicting secondary complications for chronic disease patients using multi-dimensional wellness data. Powered by XGBoost + SHAP on GCP.</div>
+  </div>
+
+  <div class="grid-4 mt-2">
+    <div class="card"><div class="card-header">Dataset Size</div><div class="card-value">200K</div><div class="card-sub">User assessments</div></div>
+    <div class="card"><div class="card-header">Wellness Dimensions</div><div class="card-value">8</div><div class="card-sub">Tracked per user</div></div>
+    <div class="card"><div class="card-header">Risk Tiers</div><div class="card-value">3</div><div class="card-sub">Low · Moderate · High</div></div>
+    <div class="card"><div class="card-header">Model</div><div class="card-value">XGBoost</div><div class="card-sub">5-fold stratified CV</div></div>
+  </div>
+
+  <div class="grid-2 mt-2">
+    <div class="card">
+      <div class="card-header">Business Question</div>
+      <p style="font-size:1.05rem;line-height:1.7;color:var(--text2);font-style:italic">"How can machine learning models use Nytia Health's multi-dimensional wellness data to predict the risk of secondary complications in users with existing chronic conditions, so that interventions can happen before those complications develop?"</p>
+    </div>
+    <div class="card">
+      <div class="card-header">Risk Tier Distribution</div>
+      <div class="donut-container" style="margin-top:0.5rem">
+        <div class="donut" style="background:conic-gradient(var(--low) 0deg 55deg,var(--moderate) 55deg 272deg,var(--high) 272deg 360deg)">
+          <div style="width:120px;height:120px;background:var(--bg2);border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <div class="donut-center"><strong>200K</strong>users</div>
+          </div>
+        </div>
+        <div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--low)"></div> Low — 30,650 (15.3%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--moderate)"></div> Moderate — 120,522 (60.3%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--high)"></div> High — 48,828 (24.4%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-2">
+    <div class="card-header">Top Declining Dimensions</div>
+    <div style="margin-top:0.75rem">
+      <div class="bar-row"><div class="bar-label">Nutrition</div><div class="bar-track"><div class="bar-fill" style="width:94%;background:linear-gradient(90deg,#F472B6,#EC4899)">94.0%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Anti-Smoke</div><div class="bar-track"><div class="bar-fill" style="width:90%;background:linear-gradient(90deg,#A78BFA,#8B5CF6)">89.9%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Movement</div><div class="bar-track"><div class="bar-fill" style="width:86%;background:linear-gradient(90deg,#60A5FA,#3B82F6)">86.0%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Anti-Stress</div><div class="bar-track"><div class="bar-fill" style="width:26%;background:linear-gradient(90deg,#F472B6,#EC4899)">26.1%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Depression</div><div class="bar-track"><div class="bar-fill" style="width:24%;background:linear-gradient(90deg,#34D399,#10B981)">23.9%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Obesity</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:linear-gradient(90deg,#FBBF24,#F59E0B)">17.9%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Wellbeing</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:var(--bg4)"></div><div class="bar-value">0.0%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Sleep</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:var(--bg4)"></div><div class="bar-value">0.0%</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PREDICT ══ -->
+<div id="page-predict" class="page">
+  <div class="section-title">Risk Prediction</div>
+  <div class="section-desc">Enter wellness scores to get a real prediction from the live Cloud Run API.</div>
+
+  <div class="card">
+    <div class="card-header">Trajectory Scores (Direction of Change)</div>
+    <div class="form-grid" style="margin-top:0.75rem">
+      <div class="form-group"><label class="form-label">Nutrition</label><select class="form-select" id="dif_nutri"><option value="(-1000)-(-250)">Sig. Decline</option><option value="(-250)-0">Slight Decline</option><option value="0-250">Slight Improve</option><option value="250-1000">Sig. Improve</option></select></div>
+      <div class="form-group"><label class="form-label">Obesity</label><select class="form-select" id="dif_obesic"><option value="(-1000)-(-250)">Sig. Decline</option><option value="(-250)-0">Slight Decline</option><option value="0-250" selected>Slight Improve</option><option value="250-1000">Sig. Improve</option></select></div>
+      <div class="form-group"><label class="form-label">Sleep</label><select class="form-select" id="dif_sleep"><option value="(-1000)-(-250)">Sig. Decline</option><option value="(-250)-0">Slight Decline</option><option value="0-250">Slight Improve</option><option value="250-1000" selected>Sig. Improve</option></select></div>
+      <div class="form-group"><label class="form-label">Depression</label><select class="form-select" id="dif_depre"><option value="(-1000)-(-250)">Sig. Decline</option><option value="(-250)-0" selected>Slight Decline</option><option value="0-250">Slight Improve</option><option value="250-1000">Sig. Improve</option></select></div>
+      <div class="form-group"><label class="form-label">Wellbeing</label><select class="form-select" id="dif_wellr"><option value="(-1000)-(-250)">Sig. Decline</option><option value="(-250)-0">Slight Decline</option><option value="0-250" selected>Slight Improve</option><option value="250-1000">Sig. Improve</option></select></div>
+      <div class="form-group"><label class="form-label">Anti-Stress</label><select class="form-select" id="dif_anti_stress"><option value="(-1000)-(-250)">Sig. Decline</option><option value="(-250)-0" selected>Slight Decline</option><option value="0-250">Slight Improve</option><option value="250-1000">Sig. Improve</option></select></div>
+      <div class="form-group"><label class="form-label">Anti-Smoke</label><select class="form-select" id="dif_anti_smoke"><option value="(-1000)-(-250)">Sig. Decline</option><option value="(-250)-0" selected>Slight Decline</option><option value="0-250">Slight Improve</option><option value="250-1000">Sig. Improve</option></select></div>
+      <div class="form-group"><label class="form-label">Movement</label><select class="form-select" id="dif_move"><option value="(-1000)-(-250)" selected>Sig. Decline</option><option value="(-250)-0">Slight Decline</option><option value="0-250">Slight Improve</option><option value="250-1000">Sig. Improve</option></select></div>
+    </div>
+  </div>
+
+  <div class="card mt-1">
+    <div class="card-header">Current Health Levels</div>
+    <div class="form-grid" style="margin-top:0.75rem">
+      <div class="form-group"><label class="form-label">Nutrition</label><select class="form-select" id="c_val_nut"><option value="0-400">Critical</option><option value="400-600">Moderate</option><option value="600-1000" selected>Healthy</option></select></div>
+      <div class="form-group"><label class="form-label">Obesity</label><select class="form-select" id="c_val_obe"><option value="0-400" selected>Critical</option><option value="400-600">Moderate</option><option value="600-1000">Healthy</option></select></div>
+      <div class="form-group"><label class="form-label">Sleep</label><select class="form-select" id="c_val_sle"><option value="0-400">Critical</option><option value="400-600">Moderate</option><option value="600-1000" selected>Healthy</option></select></div>
+      <div class="form-group"><label class="form-label">Depression</label><select class="form-select" id="c_val_dep"><option value="0-400">Critical</option><option value="400-600">Moderate</option><option value="600-1000" selected>Healthy</option></select></div>
+      <div class="form-group"><label class="form-label">Wellbeing</label><select class="form-select" id="c_val_wel"><option value="0-400" selected>Critical</option><option value="400-600">Moderate</option><option value="600-1000">Healthy</option></select></div>
+      <div class="form-group"><label class="form-label">Anti-Stress</label><select class="form-select" id="c_val_anti_stress"><option value="0-400">Critical</option><option value="400-600" selected>Moderate</option><option value="600-1000">Healthy</option></select></div>
+      <div class="form-group"><label class="form-label">Anti-Smoke</label><select class="form-select" id="c_val_anti_smoke"><option value="0-400" selected>Critical</option><option value="400-600">Moderate</option><option value="600-1000">Healthy</option></select></div>
+      <div class="form-group"><label class="form-label">Movement</label><select class="form-select" id="c_val_movement"><option value="0-400">Critical</option><option value="400-600" selected>Moderate</option><option value="600-1000">Healthy</option></select></div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.25rem;display:flex;gap:12px">
+    <button class="btn btn-primary" id="predict-btn" onclick="runPrediction()">⚡ Predict Complication Risk</button>
+    <button class="btn btn-outline" onclick="randomize()">↻ Random Patient</button>
+  </div>
+
+  <div id="prediction-result" class="mt-2" style="display:none"></div>
+</div>
+
+<!-- ══ EDA ══ -->
+<div id="page-eda" class="page">
+  <div class="section-title">EDA Insights</div>
+  <div class="section-desc">Key findings from 200,000 user wellness assessments.</div>
+
+  <div class="grid-3">
+    <div class="card"><div class="card-header">Total Records</div><div class="card-value">200,000</div><div class="card-sub">Zero missing values</div></div>
+    <div class="card"><div class="card-header">Missing Rate</div><div class="card-value" style="color:var(--low)">0.00%</div><div class="card-sub">Across all columns</div></div>
+    <div class="card"><div class="card-header">Zero-Variance Features</div><div class="card-value" style="color:var(--warn)">1</div><div class="card-sub">c_val_nut (excluded)</div></div>
+  </div>
+
+  <div class="card mt-2">
+    <div class="card-header">Key Finding: Compound Decline Drives Risk</div>
+    <p style="color:var(--text2);font-size:0.9rem;line-height:1.7;margin-top:0.5rem">Individual dimension correlations with risk tier are weak (0.05 – 0.07 Spearman). But the derived compound features show much stronger signal: <strong style="color:var(--accent)">critical_cval_count</strong> correlates at <strong style="color:var(--accent)">0.67</strong> and <strong style="color:var(--accent)">total_declining_count</strong> at <strong style="color:var(--accent)">0.41</strong>. This confirms that complication risk is driven by multi-dimensional deterioration, not single-factor decline.</p>
+  </div>
+
+  <div class="grid-2 mt-2">
+    <div class="card">
+      <div class="card-header">Outlier Analysis (IQR Method)</div>
+      <p style="color:var(--text2);font-size:0.85rem;line-height:1.6;margin-top:0.5rem">IQR-based detection flags outliers in heavily skewed variables:</p>
+      <div style="margin-top:0.75rem">
+        <div class="bar-row"><div class="bar-label">dif_nutri</div><div class="bar-track"><div class="bar-fill" style="width:9.94%;background:var(--danger)"></div><div class="bar-value">9.94%</div></div></div>
+        <div class="bar-row"><div class="bar-label">dif_depre</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--danger)"></div><div class="bar-value">10.0%</div></div></div>
+        <div class="bar-row"><div class="bar-label">dif_stress</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--danger)"></div><div class="bar-value">10.0%</div></div></div>
+        <div class="bar-row"><div class="bar-label">Others</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:var(--bg4)"></div><div class="bar-value">0.0%</div></div></div>
+      </div>
+      <p style="font-size:0.75rem;color:var(--text3);margin-top:8px"><strong>Strategy: Retain all.</strong> These are users improving where most decline — clinically meaningful, not errors.</p>
+    </div>
+    <div class="card">
+      <div class="card-header">Feature Correlation with Risk Tier (Spearman)</div>
+      <div style="margin-top:0.75rem">
+        <div class="bar-row"><div class="bar-label" style="width:140px">critical_cval</div><div class="bar-track"><div class="bar-fill" style="width:67%;background:linear-gradient(90deg,var(--accent),#0EA5E9)">0.67</div></div></div>
+        <div class="bar-row"><div class="bar-label" style="width:140px">declining_count</div><div class="bar-track"><div class="bar-fill" style="width:41%;background:linear-gradient(90deg,var(--accent),#0EA5E9)">0.41</div></div></div>
+        <div class="bar-row"><div class="bar-label" style="width:140px">dif_move</div><div class="bar-track"><div class="bar-fill" style="width:7%;background:var(--warn)"></div><div class="bar-value">0.07</div></div></div>
+        <div class="bar-row"><div class="bar-label" style="width:140px">dif_smoke</div><div class="bar-track"><div class="bar-fill" style="width:6%;background:var(--warn)"></div><div class="bar-value">0.06</div></div></div>
+        <div class="bar-row"><div class="bar-label" style="width:140px">dif_nutri</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:var(--warn)"></div><div class="bar-value">0.05</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ARCHITECTURE ══ -->
+<div id="page-architecture" class="page">
+  <div class="section-title">System Architecture</div>
+  <div class="section-desc">Hybrid GCP: Vertex AI Workbench (EDA) + Cloud Run (production pipeline + API)</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">Production Pipeline (Cloud Run)</div>
+      <div style="margin-top:0.75rem;display:flex;flex-direction:column;gap:0">
+        <div class="arch-layer" style="background:rgba(59,130,246,0.08)"><div class="arch-num" style="background:var(--info);color:#fff">1</div><div><div class="arch-title">Ingestion Job</div><div class="arch-desc">BigQuery Bronze → Silver (validated)</div><div class="arch-tech">Cloud Run Job · google-cloud-bigquery</div></div></div>
+        <div class="arch-layer" style="background:rgba(139,92,246,0.08)"><div class="arch-num" style="background:#8B5CF6;color:#fff">2</div><div><div class="arch-title">Feature Engineering Job</div><div class="arch-desc">Silver → Gold (ML-ready features)</div><div class="arch-tech">Cloud Run Job · pandas · numpy</div></div></div>
+        <div class="arch-layer" style="background:rgba(239,68,68,0.08)"><div class="arch-num" style="background:var(--danger);color:#fff">3</div><div><div class="arch-title">Model Training Job</div><div class="arch-desc">Gold → XGBoost + SHAP → Cloud Storage</div><div class="arch-tech">Cloud Run Job · xgboost · shap</div></div></div>
+        <div class="arch-layer" style="background:rgba(0,212,170,0.08)"><div class="arch-num" style="background:var(--accent);color:#000">4</div><div><div class="arch-title">Prediction API</div><div class="arch-desc">Live REST endpoint + recommendations</div><div class="arch-tech">Cloud Run Service · FastAPI</div></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">GCP Services</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:0.75rem">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg3);border-radius:8px"><span style="font-size:1.2rem">🗄️</span><div><div style="font-weight:600;font-size:0.85rem">BigQuery</div><div style="font-size:0.75rem;color:var(--text2)">Bronze → Silver → Gold (medallion)</div></div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg3);border-radius:8px"><span style="font-size:1.2rem">☁️</span><div><div style="font-weight:600;font-size:0.85rem">Cloud Storage</div><div style="font-size:0.75rem;color:var(--text2)">Model artifacts + SHAP reports</div></div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg3);border-radius:8px"><span style="font-size:1.2rem">🐳</span><div><div style="font-weight:600;font-size:0.85rem">Artifact Registry</div><div style="font-size:0.75rem;color:var(--text2)">Versioned Docker images</div></div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg3);border-radius:8px"><span style="font-size:1.2rem">🚀</span><div><div style="font-weight:600;font-size:0.85rem">Cloud Run</div><div style="font-size:0.75rem;color:var(--text2)">3 Jobs + 1 Service</div></div></div>
+        </div>
+      </div>
+      <div class="card mt-1">
+        <div class="card-header">Live API Endpoint</div>
+        <div class="json-block" style="font-size:0.75rem;line-height:2;word-break:break-all" id="api-url-display">https://nytia-api-272925935385.northamerica-northeast1.run.app</div>
+      </div>
+      <div class="card mt-1">
+        <div class="card-header">Pipeline Commands</div>
+        <div class="json-block" style="font-size:0.7rem;line-height:2"><span style="color:var(--text3)"># Run full pipeline</span>
+<span style="color:var(--accent)">gcloud run jobs execute nytia-ingestion</span>
+<span style="color:var(--accent)">gcloud run jobs execute nytia-features</span>
+<span style="color:var(--accent)">gcloud run jobs execute nytia-training</span>
+
+<span style="color:var(--text3)"># Test API</span>
+<span style="color:var(--warn)">curl /health</span>
+<span style="color:var(--warn)">curl /predict -X POST -d '{...}'</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ── CONFIG ──
+const API_URL = 'https://nytia-api-272925935385.northamerica-northeast1.run.app';
+
+const trajIds = ['dif_nutri','dif_obesic','dif_sleep','dif_depre','dif_wellr','dif_anti_stress','dif_anti_smoke','dif_move'];
+const cvalIds = ['c_val_nut','c_val_obe','c_val_sle','c_val_dep','c_val_wel','c_val_anti_stress','c_val_anti_smoke','c_val_movement'];
+const dimNames = ['Nutrition','Obesity','Sleep','Depression','Wellbeing','Anti-Stress','Anti-Smoke','Movement'];
+
+// ── NAV ──
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── API HEALTH CHECK ──
+async function checkAPI() {
+  const dot = document.getElementById('api-dot');
+  const text = document.getElementById('api-status-text');
+  try {
+    const r = await fetch(API_URL + '/health');
+    const data = await r.json();
+    if (data.model_loaded) {
+      dot.className = 'api-dot online';
+      text.textContent = 'API Online · Model Loaded';
+    } else {
+      dot.className = 'api-dot offline';
+      text.textContent = 'API Online · No Model';
+    }
+  } catch (e) {
+    dot.className = 'api-dot offline';
+    text.textContent = 'API Offline';
+  }
+}
+checkAPI();
+
+// ── PREDICT (LIVE API) ──
+async function runPrediction() {
+  const btn = document.getElementById('predict-btn');
+  const resultDiv = document.getElementById('prediction-result');
+  
+  btn.disabled = true;
+  btn.innerHTML = '<div class="loading"></div> Predicting...';
+
+  const payload = {};
+  trajIds.forEach(id => payload[id] = document.getElementById(id).value);
+  cvalIds.forEach(id => payload[id] = document.getElementById(id).value);
+
+  try {
+    const response = await fetch(API_URL + '/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.detail || 'API error');
+    }
+
+    const data = await response.json();
+    displayResult(data, payload);
+  } catch (e) {
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `<div class="card" style="border-color:var(--danger)"><div class="card-header" style="color:var(--danger)">Error</div><p style="color:var(--text2)">${e.message}</p></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Predict Complication Risk';
+  }
+}
+
+function displayResult(data, payload) {
+  const color = data.risk_level.toLowerCase();
+  const allDims = dimNames;
+  const declining = data.top_drivers;
+  const stable = allDims.filter(d => !declining.includes(d));
+
+  const cvalStatus = cvalIds.map((id, i) => {
+    const val = document.getElementById(id).value;
+    if (val === '0-400') return `<span class="stat-pill"><span class="dot" style="background:var(--danger)"></span>${dimNames[i]}: Critical</span>`;
+    if (val === '400-600') return `<span class="stat-pill"><span class="dot" style="background:var(--warn)"></span>${dimNames[i]}: Moderate</span>`;
+    return `<span class="stat-pill"><span class="dot" style="background:var(--low)"></span>${dimNames[i]}: Healthy</span>`;
+  }).join('');
+
+  const resultDiv = document.getElementById('prediction-result');
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = `
+    <div class="grid-2-1">
+      <div class="result-panel">
+        <div class="result-header ${color}">
+          <div>
+            <div style="font-size:0.75rem;color:var(--text3);margin-bottom:4px">COMPLICATION RISK LEVEL</div>
+            <div class="result-risk" style="color:var(--${color})">${data.risk_level} Risk</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:0.75rem;color:var(--text3);margin-bottom:4px">RISK SCORE</div>
+            <div class="result-score" style="color:var(--${color})">${data.risk_score}</div>
+          </div>
+        </div>
+        <div class="result-body">
+          <div class="result-section">
+            <div class="result-section-title">Declining Dimensions (${data.total_declining})</div>
+            ${declining.map(d => `<span class="driver-tag declining">↓ ${d}</span>`).join('')}
+          </div>
+          <div class="result-section">
+            <div class="result-section-title">Stable / Improving (${stable.length})</div>
+            ${stable.map(d => `<span class="driver-tag stable">✓ ${d}</span>`).join('')}
+          </div>
+          <div class="result-section">
+            <div class="result-section-title">Critical Current Values: ${data.critical_current_values}</div>
+            <div class="stat-pills">${cvalStatus}</div>
+          </div>
+          <div class="result-section">
+            <div class="result-section-title">Personalized Recommendations</div>
+            ${data.recommendations.map(r => `<div class="rec-item"><span style="color:var(--accent)">→</span>${r}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header">API Response (Live)</div>
+          <div class="json-block" style="margin-top:0.5rem;font-size:0.7rem">${syntaxHighlight(JSON.stringify(data, null, 2))}</div>
+        </div>
+        <div class="card mt-1">
+          <div class="card-header">Request Payload</div>
+          <div class="json-block" style="margin-top:0.5rem;font-size:0.65rem">${syntaxHighlight(JSON.stringify(payload, null, 2))}</div>
+        </div>
+      </div>
+    </div>`;
+  resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function syntaxHighlight(json) {
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+    let cls = 'json-num';
+    if (/^"/.test(match)) cls = /:$/.test(match) ? 'json-key' : 'json-str';
+    return '<span class="' + cls + '">' + match + '</span>';
+  });
+}
+
+function randomize() {
+  const trajVals = ['(-1000)-(-250)','(-250)-0','0-250','250-1000'];
+  const cvalVals = ['0-400','400-600','600-1000'];
+  trajIds.forEach(id => document.getElementById(id).value = trajVals[Math.floor(Math.random()*trajVals.length)]);
+  cvalIds.forEach(id => document.getElementById(id).value = cvalVals[Math.floor(Math.random()*cvalVals.length)]);
+  runPrediction();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+# ── Data (generated, not tracked) ──
+data/raw/*
+data/processed/*
+!data/sample/
+!data/**/.gitkeep
+
+# ── Model artifacts ──
+models/artifacts/*
+models/shap_reports/*
+!models/**/.gitkeep
+
+# ── Outputs ──
+outputs/figures/*
+outputs/tables/*
+!outputs/**/.gitkeep
+
+# ── Secrets ──
+config/gcp_service_account.json
+.env
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# ── Jupyter ──
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Docker ──
+.docker/
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

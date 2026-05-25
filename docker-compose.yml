@@ -1,0 +1,83 @@
+version: "3.9"
+
+services:
+  # ── Ingestion: Pulls data from BigQuery, validates schema ──
+  ingestion:
+    build:
+      context: ./services/ingestion
+      dockerfile: Dockerfile
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    networks:
+      - nytia-net
+
+  # ── Features: Transforms raw data into ML-ready features ──
+  features:
+    build:
+      context: ./services/features
+      dockerfile: Dockerfile
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    depends_on:
+      - ingestion
+    networks:
+      - nytia-net
+
+  # ── Model: Trains XGBoost, generates SHAP reports (on-demand) ──
+  model:
+    build:
+      context: ./services/model
+      dockerfile: Dockerfile
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+      - ./config:/app/config
+    profiles: ["train"]
+    networks:
+      - nytia-net
+
+  # ── API: FastAPI prediction + recommendation endpoint ──
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./config:/app/config
+    networks:
+      - nytia-net
+
+  # ── Jupyter: Exploration notebooks ──
+  notebook:
+    build:
+      context: ./services/model
+    command: >
+      jupyter notebook
+      --ip=0.0.0.0 --port=8888
+      --allow-root --no-browser
+      --NotebookApp.token=''
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/app/notebooks
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+      - ./config:/app/config
+    env_file: .env
+    profiles: ["dev"]
+    networks:
+      - nytia-net
+
+networks:
+  nytia-net:
+    driver: bridge

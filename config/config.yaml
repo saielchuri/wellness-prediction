@@ -1,0 +1,93 @@
+project:
+  name: nytia-health-capstone
+  version: "1.0.0"
+  environment: dev
+
+# ── Data Schema ──
+dimensions:
+  - nutrition
+  - obesity
+  - sleep
+  - depression
+  - wellbeing
+  - anti_stress
+  - anti_smoke
+  - movement
+
+columns:
+  trajectory:
+    - dif_nutri
+    - dif_obesic
+    - dif_sleep
+    - dif_depre
+    - dif_wellr
+    - dif_anti_stress
+    - dif_anti_smoke
+    - dif_move
+  current_value:
+    - c_val_nut
+    - c_val_obe
+    - c_val_sle
+    - c_val_dep
+    - c_val_wel
+    - c_val_anti_stress
+    - c_val_anti_smoke
+    - c_val_movement
+
+# ── Encoding Maps ──
+encoding:
+  trajectory:
+    "(-1000)-(-250)": 1
+    "(-250)-0": 2
+    "0-250": 3
+    "250-1000": 4
+  current_value:
+    "0-400": 1
+    "400-600": 2
+    "600-1000": 3
+
+# ── Risk Tier Thresholds ──
+risk_tiers:
+  low:
+    max_declining: 3
+    max_critical_cval: 1
+  moderate:
+    max_declining: 4
+    max_critical_cval: 3
+  # high: everything above moderate
+
+# ── Model Hyperparameters ──
+model:
+  algorithm: xgboost
+  hyperparameters:
+    max_depth: 6
+    learning_rate: 0.1
+    n_estimators: 200
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_weight: 5
+    objective: "multi:softprob"
+    num_class: 3
+    eval_metric: "mlogloss"
+    random_state: 42
+  cross_validation:
+    n_splits: 5
+    stratified: true
+  fairness:
+    threshold: 0.05
+
+# ── Recommendation Mapping ──
+recommendations:
+  smoking_cessation:
+    - "Chew gum or eat mints when you feel the urge to smoke."
+    - "Tell your family and friends that you plan to quit smoking."
+    - "Keep your hands busy with a pen or toothpick."
+    - "Read about the harmful effects of smoking on the human body."
+    - "Avoid harmful behaviors, such as smoking and excessive drinking."
+  physical_activity:
+    - "Take a post-meal walk."
+    - "Don't spend too much time in one place, take breaks often to walk around or stretch."
+    - "Play a sport you enjoy or go for a walk or run."
+    - "You must engage in at least 30 minutes of moderate physical activity daily."
+  behavioral_planning:
+    - "Anticipate and plan for the challenges that may arise."
