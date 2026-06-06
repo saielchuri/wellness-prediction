@@ -155,7 +155,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(11,15,26,0.85);backdrop-fi
   </div>
 
   <div class="grid-4 mt-2">
-    <div class="card"><div class="card-header">Dataset Size</div><div class="card-value">200K</div><div class="card-sub">User assessments</div></div>
+    <div class="card"><div class="card-header">Dataset Size</div><div class="card-value">500K</div><div class="card-sub">User assessments</div></div>
     <div class="card"><div class="card-header">Wellness Dimensions</div><div class="card-value">8</div><div class="card-sub">Tracked per user</div></div>
     <div class="card"><div class="card-header">Risk Tiers</div><div class="card-value">3</div><div class="card-sub">Low · Moderate · High</div></div>
     <div class="card"><div class="card-header">Model</div><div class="card-value">XGBoost</div><div class="card-sub">5-fold stratified CV</div></div>
@@ -169,15 +169,15 @@ nav{position:sticky;top:0;z-index:100;background:rgba(11,15,26,0.85);backdrop-fi
     <div class="card">
       <div class="card-header">Risk Tier Distribution</div>
       <div class="donut-container" style="margin-top:0.5rem">
-        <div class="donut" style="background:conic-gradient(var(--low) 0deg 55deg,var(--moderate) 55deg 272deg,var(--high) 272deg 360deg)">
+        <div class="donut" style="background:conic-gradient(var(--low) 0deg 15deg,var(--moderate) 15deg 132deg,var(--high) 132deg 360deg)">
           <div style="width:120px;height:120px;background:var(--bg2);border-radius:50%;display:flex;align-items:center;justify-content:center">
-            <div class="donut-center"><strong>200K</strong>users</div>
+            <div class="donut-center"><strong>500K</strong>users</div>
           </div>
         </div>
         <div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--low)"></div> Low — 30,650 (15.3%)</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--moderate)"></div> Moderate — 120,522 (60.3%)</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--high)"></div> High — 48,828 (24.4%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--low)"></div> Low — 21,083 (4.2%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--moderate)"></div> Moderate — 162,117 (32.4%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--high)"></div> High — 316,800 (63.4%)</div>
         </div>
       </div>
     </div>
@@ -186,9 +186,9 @@ nav{position:sticky;top:0;z-index:100;background:rgba(11,15,26,0.85);backdrop-fi
   <div class="card mt-2">
     <div class="card-header">Top Declining Dimensions</div>
     <div style="margin-top:0.75rem">
-      <div class="bar-row"><div class="bar-label">Nutrition</div><div class="bar-track"><div class="bar-fill" style="width:94%;background:linear-gradient(90deg,#F472B6,#EC4899)">94.0%</div></div></div>
-      <div class="bar-row"><div class="bar-label">Anti-Smoke</div><div class="bar-track"><div class="bar-fill" style="width:90%;background:linear-gradient(90deg,#A78BFA,#8B5CF6)">89.9%</div></div></div>
-      <div class="bar-row"><div class="bar-label">Movement</div><div class="bar-track"><div class="bar-fill" style="width:86%;background:linear-gradient(90deg,#60A5FA,#3B82F6)">86.0%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Nutrition</div><div class="bar-track"><div class="bar-fill" style="width:92.4%;background:linear-gradient(90deg,#F472B6,#EC4899)">92.4%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Sleep</div><div class="bar-track"><div class="bar-fill" style="width:57.7%;background:linear-gradient(90deg,#A78BFA,#8B5CF6)">57.7%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Anti-Stress</div><div class="bar-track"><div class="bar-fill" style="width:50.4%;background:linear-gradient(90deg,#60A5FA,#3B82F6)">50.4%</div></div></div>
       <div class="bar-row"><div class="bar-label">Anti-Stress</div><div class="bar-track"><div class="bar-fill" style="width:26%;background:linear-gradient(90deg,#F472B6,#EC4899)">26.1%</div></div></div>
       <div class="bar-row"><div class="bar-label">Depression</div><div class="bar-track"><div class="bar-fill" style="width:24%;background:linear-gradient(90deg,#34D399,#10B981)">23.9%</div></div></div>
       <div class="bar-row"><div class="bar-label">Obesity</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:linear-gradient(90deg,#FBBF24,#F59E0B)">17.9%</div></div></div>
@@ -242,36 +242,35 @@ nav{position:sticky;top:0;z-index:100;background:rgba(11,15,26,0.85);backdrop-fi
 <!-- ══ EDA ══ -->
 <div id="page-eda" class="page">
   <div class="section-title">EDA Insights</div>
-  <div class="section-desc">Key findings from 200,000 user wellness assessments.</div>
+  <div class="section-desc">Key findings from 500,000 user wellness assessments (real sponsor data).</div>
 
   <div class="grid-3">
-    <div class="card"><div class="card-header">Total Records</div><div class="card-value">200,000</div><div class="card-sub">Zero missing values</div></div>
+    <div class="card"><div class="card-header">Total Records</div><div class="card-value">500,000</div><div class="card-sub">Zero missing values</div></div>
     <div class="card"><div class="card-header">Missing Rate</div><div class="card-value" style="color:var(--low)">0.00%</div><div class="card-sub">Across all columns</div></div>
-    <div class="card"><div class="card-header">Zero-Variance Features</div><div class="card-value" style="color:var(--warn)">1</div><div class="card-sub">c_val_nut (excluded)</div></div>
+    <div class="card"><div class="card-header">Highest Risk Tier</div><div class="card-value" style="color:var(--danger)">63.4%</div><div class="card-sub">Users in High tier</div></div>
   </div>
 
   <div class="card mt-2">
     <div class="card-header">Key Finding: Compound Decline Drives Risk</div>
-    <p style="color:var(--text2);font-size:0.9rem;line-height:1.7;margin-top:0.5rem">Individual dimension correlations with risk tier are weak (0.05 – 0.07 Spearman). But the derived compound features show much stronger signal: <strong style="color:var(--accent)">critical_cval_count</strong> correlates at <strong style="color:var(--accent)">0.67</strong> and <strong style="color:var(--accent)">total_declining_count</strong> at <strong style="color:var(--accent)">0.41</strong>. This confirms that complication risk is driven by multi-dimensional deterioration, not single-factor decline.</p>
+    <p style="color:var(--text2);font-size:0.9rem;line-height:1.7;margin-top:0.5rem">Individual dimension correlations with risk tier are weak. But the derived compound features show strong signal: <strong style="color:var(--accent)">total_declining_count</strong> correlates at <strong style="color:var(--accent)">0.69</strong> and <strong style="color:var(--accent)">critical_cval_count</strong> at <strong style="color:var(--accent)">0.38</strong> (Spearman). This confirms that complication risk is driven by multi-dimensional deterioration, not single-factor decline.</p>
   </div>
 
   <div class="grid-2 mt-2">
     <div class="card">
-      <div class="card-header">Outlier Analysis (IQR Method)</div>
-      <p style="color:var(--text2);font-size:0.85rem;line-height:1.6;margin-top:0.5rem">IQR-based detection flags outliers in heavily skewed variables:</p>
+      <div class="card-header">Nutrition Dominates Decline</div>
+      <p style="color:var(--text2);font-size:0.85rem;line-height:1.6;margin-top:0.5rem">In the 500K real data, Nutrition declines in 92.4% of users — far above every other dimension, which cluster near 50%. Nutrition is the single most widespread health challenge and the primary intervention target.</p>
       <div style="margin-top:0.75rem">
-        <div class="bar-row"><div class="bar-label">dif_nutri</div><div class="bar-track"><div class="bar-fill" style="width:9.94%;background:var(--danger)"></div><div class="bar-value">9.94%</div></div></div>
-        <div class="bar-row"><div class="bar-label">dif_depre</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--danger)"></div><div class="bar-value">10.0%</div></div></div>
-        <div class="bar-row"><div class="bar-label">dif_stress</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--danger)"></div><div class="bar-value">10.0%</div></div></div>
-        <div class="bar-row"><div class="bar-label">Others</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:var(--bg4)"></div><div class="bar-value">0.0%</div></div></div>
+        <div class="bar-row"><div class="bar-label">Nutrition</div><div class="bar-track"><div class="bar-fill" style="width:92.4%;background:var(--danger)">92.4%</div></div></div>
+        <div class="bar-row"><div class="bar-label">Sleep</div><div class="bar-track"><div class="bar-fill" style="width:57.7%;background:var(--warn)">57.7%</div></div></div>
+        <div class="bar-row"><div class="bar-label">Others</div><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--bg4)">~50%</div></div></div>
       </div>
-      <p style="font-size:0.75rem;color:var(--text3);margin-top:8px"><strong>Strategy: Retain all.</strong> These are users improving where most decline — clinically meaningful, not errors.</p>
+      <p style="font-size:0.75rem;color:var(--text3);margin-top:8px"><strong>Note:</strong> Other dimensions sit near 50%, indicating a largely uniform distribution outside nutrition.</p>
     </div>
     <div class="card">
       <div class="card-header">Feature Correlation with Risk Tier (Spearman)</div>
       <div style="margin-top:0.75rem">
-        <div class="bar-row"><div class="bar-label" style="width:140px">critical_cval</div><div class="bar-track"><div class="bar-fill" style="width:67%;background:linear-gradient(90deg,var(--accent),#0EA5E9)">0.67</div></div></div>
-        <div class="bar-row"><div class="bar-label" style="width:140px">declining_count</div><div class="bar-track"><div class="bar-fill" style="width:41%;background:linear-gradient(90deg,var(--accent),#0EA5E9)">0.41</div></div></div>
+        <div class="bar-row"><div class="bar-label" style="width:140px">declining_count</div><div class="bar-track"><div class="bar-fill" style="width:69%;background:linear-gradient(90deg,var(--accent),#0EA5E9)">0.69</div></div></div>
+        <div class="bar-row"><div class="bar-label" style="width:140px">critical_cval</div><div class="bar-track"><div class="bar-fill" style="width:38%;background:linear-gradient(90deg,var(--accent),#0EA5E9)">0.38</div></div></div>
         <div class="bar-row"><div class="bar-label" style="width:140px">dif_move</div><div class="bar-track"><div class="bar-fill" style="width:7%;background:var(--warn)"></div><div class="bar-value">0.07</div></div></div>
         <div class="bar-row"><div class="bar-label" style="width:140px">dif_smoke</div><div class="bar-track"><div class="bar-fill" style="width:6%;background:var(--warn)"></div><div class="bar-value">0.06</div></div></div>
         <div class="bar-row"><div class="bar-label" style="width:140px">dif_nutri</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:var(--warn)"></div><div class="bar-value">0.05</div></div></div>
