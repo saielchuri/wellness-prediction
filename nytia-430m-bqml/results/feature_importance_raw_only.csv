@@ -1,0 +1,17 @@
+feature,importance
+dif_obesic_enc,0.2316
+dif_anti_smoke_enc,0.2303
+dif_wellr_enc,0.2299
+dif_move_enc,0.2299
+dif_depre_enc,0.2283
+dif_sleep_enc,0.2155
+dif_nutri_enc,0.2110
+dif_anti_stress_enc,0.2102
+c_val_movement_enc,0.2016
+c_val_dep_enc,0.2015
+c_val_anti_stress_enc,0.2013
+c_val_wel_enc,0.2011
+c_val_sle_enc,0.2007
+c_val_anti_smoke_enc,0.1994
+c_val_nut_enc,0.1993
+c_val_obe_enc,0.1985

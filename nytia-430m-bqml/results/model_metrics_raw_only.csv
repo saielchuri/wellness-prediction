@@ -1,0 +1,6 @@
+metric,leaky_18feat,raw_only_16feat
+accuracy,1.0,0.9447
+precision,1.0,0.9589
+recall,1.0,0.7594
+f1_score,1.0,0.7908
+roc_auc,1.0,0.9915
